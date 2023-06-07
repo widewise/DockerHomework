@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: m
+  labels:
+    name: m
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dotnetcoreapp
+  name: dotnetcoreapp
+  namespace: m
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dotnetcoreapp
+  template:
+    metadata:
+      labels:
+        app: dotnetcoreapp
+    spec:
+      containers:
+      - name: dotnetcoreapp
+        image: docker.io/widedreadnout/docker-hw
+        ports:
+          - containerPort: 8000 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dotnetcoreapp-service
+  namespace: m
+
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: dotnetcoreapp
+  type: NodePort
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dotnetcoreapp-ingress
+  namespace: m
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: "arch.homework"
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: dotnetcoreapp-service
+              port:
+                number: 80
